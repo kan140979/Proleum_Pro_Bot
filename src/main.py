@@ -49,9 +49,8 @@ def get_gpt_response(user_id, user_input):
     conversation_history.append({"role": "system", "content": user_input})
 
     try:
-        model = user_models.get(
-            user_id, "gpt-3.5-turbo-1106"
-        )  # По умолчанию используем gpt-3.5-turbo-1106
+        # По умолчанию используем gpt-3.5-turbo-1106
+        model = user_models.get(user_id, "gpt-3.5-turbo-1106")
         response = client.chat.completions.create(
             model=model, messages=conversation_history
         )
@@ -66,13 +65,30 @@ def get_gpt_response(user_id, user_input):
         return f"Произошла ошибка при обращении к модели {model}. Пожалуйста, попробуйте позже."
 
 
+# Функция для генерации изображения DALL-E
+def generate_image(prompt):
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
+        image_url = response.data[0].url
+        return image_url
+    except Exception as e:
+        logging.error(f"Ошибка при генерации изображения: {str(e)}")
+        return None
+
+
 # Обработчик стартового сообщения
 @bot.message_handler(commands=["start"])
 def handle_start(message):
     user_id = message.from_user.id
     bot.send_message(
         user_id,
-        "Привет! Выберите модель, которую хотите использовать:",
+        "Привет! Выберите модель ChatGPT, которую вы хотите использовать:",
         reply_markup=create_model_keyboard(),
     )
 
@@ -86,8 +102,24 @@ def handle_model_selection(message):
     user_models[user_id] = message.text
     bot.send_message(
         user_id,
-        f"Вы выбрали модель {message.text}. Теперь вы можете начать задавать вопросы.",
+        f"Вы выбрали модель ChatGPT: {message.text}. Теперь вы можете начать задавать вопросы.",
     )
+
+
+# Обработчик генерации изображения
+@bot.message_handler(commands=["generate_image"])
+def handle_image_generation(message):
+    user_id = message.from_user.id
+    prompt = message.text[len("/generate_image ") :]
+    bot.reply_to(message, "Генерация изображения с помощью модели DALL·E 3. Пожалуйста, подождите...")
+    image_url = generate_image(prompt)
+    logging.info(f"Ссылка на изображение для пользователя {user_id}: {image_url}")
+    if image_url:
+        bot.send_photo(user_id, image_url)
+    else:
+        bot.reply_to(
+            message, "Произошла ошибка при генерации изображения. Попробуйте снова."
+        )
 
 
 # Обработчик остальных сообщений
