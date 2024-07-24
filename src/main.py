@@ -67,6 +67,7 @@ def get_gpt_response(user_id, user_input):
 
 # Функция для генерации изображения DALL-E
 def generate_image(prompt):
+#TODO добавить промпт в контекст (conversation_history.append)
     try:
         response = client.images.generate(
             model="dall-e-3",
@@ -111,6 +112,7 @@ def handle_model_selection(message):
 def handle_image_generation(message):
     user_id = message.from_user.id
     prompt = message.text[len("/generate_image ") :]
+    logging.info(f"Получен промпт на генерацию изображения от пользователя {user_id}: {prompt}")
     bot.reply_to(message, "Генерация изображения с помощью модели DALL·E 3. Пожалуйста, подождите...")
     image_url = generate_image(prompt)
     logging.info(f"Ссылка на изображение для пользователя {user_id}: {image_url}")

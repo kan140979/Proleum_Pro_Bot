@@ -32,7 +32,7 @@ mail_handler = logging.handlers.SMTPHandler(
     mailhost=("smtp.gmail.com", 587),
     fromaddr=MAIL_FROM,
     toaddrs=[MAIL_TO],
-    subject="Критическое сообщение журнала",
+    subject="Критическое сообщение журнала Телеграм бота",
     credentials=(MAIL_USER, MAIL_APP_PASSWORD),
     secure=(),
 )
